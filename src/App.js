@@ -8,16 +8,16 @@ function App() {
     const [isSpinning, setIsSpinning] = useState(false);
     const [wheelRotation, setWheelRotation] = useState(0);
 
-    const BACKEND_URL = 'http://localhost:5000'; // Cambiar esto según del backend
+    const BACKEND_URL = 'http://localhost:5000'; // Cambiar esto según el backend
 
-    
+    // **Carga inicial de participantes desde el backend**
     useEffect(() => {
         const fetchParticipants = async () => {
             try {
                 const response = await axios.get(`${BACKEND_URL}/participants`);
                 const filteredParticipants = response.data.filter(
-                    (participant) => !participant.hasPlayed
-                ); // Solo participantes que no han pasado
+                    (participant) => !participant.seleccionado // Filtra por `seleccionado: false`
+                );
                 setParticipants(filteredParticipants);
             } catch (error) {
                 console.error('Error al cargar los participantes:', error);
@@ -47,15 +47,15 @@ function App() {
         setWheelRotation((prevRotation) => prevRotation + finalRotation);
 
         setTimeout(async () => {
-            setSelectedParticipant(chosen.name);
+            setSelectedParticipant(chosen.nombre); // Muestra el nombre del participante
 
             // Actualizar el backend para marcar como seleccionado
             try {
-                await axios.post(`${BACKEND_URL}/participants/mark`, { name: chosen.name });
+                await axios.post(`${BACKEND_URL}/participants/mark`, { nombre: chosen.nombre });
                 // Actualizar la lista desde el backend
                 const response = await axios.get(`${BACKEND_URL}/participants`);
                 const filteredParticipants = response.data.filter(
-                    (participant) => !participant.hasPlayed
+                    (participant) => !participant.seleccionado
                 );
                 setParticipants(filteredParticipants);
             } catch (error) {
@@ -72,7 +72,7 @@ function App() {
             await axios.post(`${BACKEND_URL}/participants/reset`);
             const response = await axios.get(`${BACKEND_URL}/participants`);
             const filteredParticipants = response.data.filter(
-                (participant) => !participant.hasPlayed
+                (participant) => !participant.seleccionado
             );
             setParticipants(filteredParticipants);
             setSelectedParticipant(null);
@@ -96,7 +96,7 @@ function App() {
                         const anglePerSegment = 360 / participants.length;
                         return (
                             <div
-                                key={index}
+                                key={participant._id} // Usa `_id` como clave única
                                 className="segment"
                                 style={{
                                     transform: `rotate(${anglePerSegment * index}deg) skewY(-${90 - anglePerSegment}deg)`,
@@ -109,7 +109,7 @@ function App() {
                                         transform: `skewY(${90 - anglePerSegment}deg) rotate(${anglePerSegment / 2}deg)`,
                                     }}
                                 >
-                                    {participant.name}
+                                    {participant.nombre} {/* Usa `nombre` para mostrar */}
                                 </div>
                             </div>
                         );
