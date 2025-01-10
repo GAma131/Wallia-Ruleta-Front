@@ -8,16 +8,17 @@ function App() {
     const [isSpinning, setIsSpinning] = useState(false);
     const [wheelRotation, setWheelRotation] = useState(0);
 
-    const BACKEND_URL = 'http://localhost:5000'; // Cambiar esto según el backend
+    const BACKEND_URL = 'http://localhost:3000'; // Cambiar esto según el backend
 
     // **Carga inicial de participantes desde el backend**
     useEffect(() => {
         const fetchParticipants = async () => {
             try {
-                const response = await axios.get(`${BACKEND_URL}/participants`);
+                const response = await axios.get(`${BACKEND_URL}/api/roulette`);
                 const filteredParticipants = response.data.filter(
                     (participant) => !participant.seleccionado // Filtra por `seleccionado: false`
                 );
+                console.log('Participantes:', filteredParticipants);
                 setParticipants(filteredParticipants);
             } catch (error) {
                 console.error('Error al cargar los participantes:', error);
@@ -48,15 +49,12 @@ function App() {
 
         setTimeout(async () => {
             setSelectedParticipant(chosen.nombre); // Muestra el nombre del participante
+            console.log(chosen._id)
 
             // Actualizar el backend para marcar como seleccionado
             try {
-                await axios.post(`${BACKEND_URL}/participants/mark`, { nombre: chosen.nombre });
-                // Actualizar la lista desde el backend
-                const response = await axios.get(`${BACKEND_URL}/participants`);
-                const filteredParticipants = response.data.filter(
-                    (participant) => !participant.seleccionado
-                );
+                await axios.patch(`${BACKEND_URL}/api/roulette`, { id: chosen._id });
+
                 setParticipants(filteredParticipants);
             } catch (error) {
                 console.error('Error al actualizar el participante:', error);
@@ -64,22 +62,6 @@ function App() {
 
             setIsSpinning(false);
         }, 3000);
-    };
-
-    // **Función para reiniciar la ruleta**
-    const resetRoulette = async () => {
-        try {
-            await axios.post(`${BACKEND_URL}/participants/reset`);
-            const response = await axios.get(`${BACKEND_URL}/participants`);
-            const filteredParticipants = response.data.filter(
-                (participant) => !participant.seleccionado
-            );
-            setParticipants(filteredParticipants);
-            setSelectedParticipant(null);
-            setWheelRotation(0); // Resetea la rotación
-        } catch (error) {
-            console.error('Error al reiniciar los participantes:', error);
-        }
     };
 
     return (
@@ -118,9 +100,6 @@ function App() {
             </div>
             <button onClick={spinRoulette} disabled={isSpinning}>
                 Girar Ruleta
-            </button>
-            <button onClick={resetRoulette} disabled={isSpinning}>
-                Reiniciar Ruleta
             </button>
             {selectedParticipant && <h2>Seleccionado: {selectedParticipant}</h2>}
         </div>
