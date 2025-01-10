@@ -68,13 +68,9 @@ main {
 
 #roulette .roulette-section .roulette-section-container p {
     margin-top: 30px;
-    transform: skew(50deg) rotate(140deg);
+    transform: skew(50deg) rotate(145deg);
 }
 
 .button-container {
     margin-top: 50px;
-}
-
-.button-container button#reset {
-    display: none;
 }

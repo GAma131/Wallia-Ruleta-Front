@@ -24,16 +24,20 @@ const Roulette = () => {
     ];
 
     useEffect(() => {
-      const fetchSections = async () => {
-        try {
-          const response = await axios.get("http://localhost:3000/api/roulette");
-          const nombres = response.data.map((item) => item.nombre);
-          setSections(nombres);
-          console.log("Sections fetched:", nombres);
-        } catch (error) {
-          console.error("Error fetching sections:", error);
-        }
-      };
+        const fetchSections = async () => {
+            try {
+              const response = await axios.get("http://localhost:3000/api/roulette");
+              // Filtrar solo los elementos donde seleccionado sea false
+              const nombres = response.data
+                .filter((item) => !item.seleccionado) // Filtra por seleccionado=false
+                .map((item) => item.nombre); // Mapea solo los nombres
+              setSections(nombres);
+              console.log("Sections fetched (filtered):", nombres);
+            } catch (error) {
+              console.error("Error fetching sections:", error);
+            }
+          };
+
 
       fetchSections();
     }, []);
