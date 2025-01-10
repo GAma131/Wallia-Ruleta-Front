@@ -8,7 +8,7 @@ function App() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [wheelRotation, setWheelRotation] = useState(0);
 
-  const BACKEND_URL = "http://localhost:5000"; // Cambiar esto según el backend
+  const BACKEND_URL = "http://localhost:3000"; // Cambiar esto según el backend
 
   // **Carga inicial de participantes desde el backend**
   useEffect(() => {
@@ -32,7 +32,6 @@ function App() {
   const spinRoulette = () => {
     if (participants.length === 0) {
       alert("Todos han sido seleccionados. Reiniciando la ruleta.");
-      resetRoulette();
       return;
     }
 
@@ -40,7 +39,7 @@ function App() {
 
     const randomIndex = Math.floor(Math.random() * participants.length);
     const chosen = participants[randomIndex];
-    const anglePerSegment = 360 / participants.length;
+    const anglePerSegment = 360 / (participants.length || 1);
     const randomAngle = randomIndex * anglePerSegment;
     const additionalRotations = 5 * 360;
     const finalRotation = additionalRotations + randomAngle;
@@ -87,6 +86,7 @@ function App() {
         >
           {participants.map((participant, index) => {
             const anglePerSegment = 360 / participants.length;
+            console.log("rendering", participant.nombre, "at angle", anglePerSegment * index);
             return (
               <div
                 key={participant._id} // Usa `_id` como clave única
