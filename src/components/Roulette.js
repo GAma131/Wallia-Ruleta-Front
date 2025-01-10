@@ -1,138 +1,114 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import confetti from "canvas-confetti";
-import "./styles.css";
+import "../styles.css";
+import "../components/roulette.css";
+import "../components/roulette-rotations.css";
+import "../components/roulette-colors.css";
 
-const Roulette = () => {
-  const [currentRotation, setCurrentRotation] = useState(
-    Math.ceil(Math.random() * 3600)
-  );
-  const [modalMessage, setModalMessage] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [names, setNames] = useState([]);
-  const wheelRef = useRef(null);
-
-  const getRandomColor = (index) => {
-    const colors = ["#FF5733", "#33FF57", "#3357FF", "#FFC300", "#DAF7A6"];
-    return colors[index % colors.length];
-  };
-
-
-  useEffect(() => {
-    const fetchData = async () => {
-        try{
-            const response = await axios.get('http://localhost:3000/api/roulette');
-            const formattedData = response.data
-            .filter((item) => !item.seleccionado)
-            .map((item, index) => ({
-                value: item.nombre,
-                color: getRandomColor(index),
-            }));
-            setNames(formattedData);
-            console.log('Formatted data: ', formattedData);
-        } catch(error){
-            console.error('Error fetching data: ', error);
-        }
-    };
-    fetchData();
-  }, []);
-
-  const spinWheel = () => {
-    const segmentAngle = 360 / names.length; // Ángulo por segmento
-    const randomIndex = Math.floor(Math.random() * names.length); // Índice aleatorio
-    const totalRotation = 360 * 5 + randomIndex * segmentAngle; // Rotación total simulada
-
-    // Animar la rueda
-    if (wheelRef.current) {
-      wheelRef.current.style.transition = "transform 4s ease-in-out";
-      wheelRef.current.style.transform = `rotate(${
-        totalRotation + currentRotation
-      }deg)`;
-    }
-
-    setTimeout(() => {
-      // Calcular el ángulo final efectivo
-      const finalAngle =
-        (totalRotation + currentRotation) % 360; // Ángulo después de completar las vueltas
-      const resultIndex = Math.floor(
-        (names.length - Math.floor(finalAngle / segmentAngle)) % names.length
-      ); // Mapear el ángulo al índice correspondiente
-
-      setModalMessage(
-        `¡Felicidades! tu descuento es de ${names[resultIndex].value}%`
-      );
-      setIsModalOpen(true);
-      launchConfetti();
-    }, 4000);
-
-    setCurrentRotation((totalRotation + currentRotation));
-  };
-
-
-  const launchConfetti = () => {
-    const duration = 3000;
-    const end = Date.now() + duration;
-
-    (function frame() {
-      confetti({
-        particleCount: 5,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-      });
-      confetti({
-        particleCount: 5,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-      });
-
-      if (Date.now() < end) {
-        requestAnimationFrame(frame);
-      }
-    })();
-  };
-
-  return (
-    <div className="container">
-      <div className="spinBtn" onClick={spinWheel}>
-        SPIN
-      </div>
-      <div className="wheel" ref={wheelRef}>
-        {names.map((name, index) => (
-          <div
-            key={index}
-            className="name"
-            style={{
-                "--i": index,
-                "--total": names.length,
-                "--clr": name.color,
-              }}
-          >
-            <span>{name.value}</span>
-          </div>
-        ))}
-      </div>
-
-      {isModalOpen && (
-        <div
-          className="modal"
-          style={{ display: isModalOpen ? "flex" : "none" }}
-          onClick={() => setIsModalOpen(false)}
-        >
-          <div className="modal-content">
-            <p>{modalMessage}</p>
-            <button
-              id="modal-close"
-              onClick={() => setIsModalOpen(false)}
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+const getRandomNumber = (min, max) => {
+    return Math.round(Math.random() * (max - min) + min);
 };
 
-export default Roulette;
+
+const Roulette = () => {
+    const [sections, setSections] = useState([]);
+    const [rotation, setRotation] = useState(0);
+    const [spinning, setSpinning] = useState(false);
+    const [animationTime, setAnimationTime] = useState(0);
+
+    // Paleta de colores
+    const colors = [
+      "#df0978", "#8d078d", "#3a63ba", "#4fa1de", "#23bb23", "#46b545",
+      "#88c740", "#f2f215", "#f1b041", "#e35825", "#e01423", "#ffae00",
+      "#82714c",
+    ];
+
+    useEffect(() => {
+      const fetchSections = async () => {
+        try {
+          const response = await axios.get("http://localhost:3000/api/roulette");
+          const nombres = response.data.map((item) => item.nombre);
+          setSections(nombres);
+          console.log("Sections fetched:", nombres);
+        } catch (error) {
+          console.error("Error fetching sections:", error);
+        }
+      };
+
+      fetchSections();
+    }, []);
+
+    const spinRoulette = () => {
+      if (spinning) return;
+
+      const spins = getRandomNumber(1, 10);
+      const degrees = getRandomNumber(1, 360);
+
+      const fullRotation = (spins - 1) * 360;
+      const spin = rotation + fullRotation + degrees;
+      const newAnimationTime = spins;
+
+      setRotation(spin);
+      setAnimationTime(newAnimationTime);
+      setSpinning(true);
+
+      setTimeout(() => {
+        setSpinning(false);
+      }, newAnimationTime * 1000);
+    };
+
+    const resetRoulette = () => {
+      setRotation(0);
+      setSpinning(false);
+      setAnimationTime(2);
+    };
+
+    return (
+      <section className="roulette-container">
+        <div id="selector"></div>
+        <div
+          id="roulette"
+          style={{
+            transform: `rotate(${rotation}deg)`,
+            transition: `transform ${animationTime}s ease-out`,
+          }}
+        >
+          {sections.map((text, index) => {
+            const totalSections = sections.length;
+            const anglePerSection = 360 / totalSections;
+            const rotateAngle = index * anglePerSection;
+            const skewAngle = -(90 - anglePerSection);
+
+            // Determinar el color correspondiente (en bucle si hay más secciones que colores)
+            const backgroundColor = colors[index % colors.length];
+
+            return (
+              <div
+                key={index}
+                className="roulette-section"
+                style={{
+                  transform: `rotate(${rotateAngle}deg) skewY(${skewAngle}deg)`,
+                }}
+              >
+                <div
+                  className="roulette-section-container"
+                  style={{
+                    backgroundColor,
+                  }} // Aplicar el color dinámico
+                >
+                  <p>{text}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="button-container">
+          <button onClick={spinRoulette} disabled={spinning}>
+            ¡Girar!
+          </button>
+        </div>
+      </section>
+    );
+  };
+
+  export default Roulette;

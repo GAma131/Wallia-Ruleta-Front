@@ -1,145 +1,34 @@
-styles.css
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Poppins', sans-serif;
 }
 
 body {
+  background: #1b1b1b;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.button-container {
   display: flex;
   justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: #333;
 }
 
-.container {
-  position: relative;
-  width: 550px;
-  height: 550px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.container .spinBtn {
-  position: absolute;
-  width: 60px;
-  height: 60px;
-  background: #fff;
-  border-radius: 50%;
-  z-index: 10;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: #333;
-  letter-spacing: 0.1em;
-  border: 4px solid rgba(0, 0, 0, 0.75);
-  cursor: pointer;
-  user-select: none;
-}
-
-.container .spinBtn::before {
-  content: '';
-  position: absolute;
-  top: -28px;
-  width: 20px;
-  height: 30px;
-  background-color: #fff;
-  clip-path: polygon(50% 0%, 15% 100%, 85% 100%);
-}
-
-.container .wheel {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #333;
-  border-radius: 50%;
-  overflow: hidden;
-  box-shadow: 0 0 0 5px #333, 0 0 0 15px #fff, 0 0 0 18px #111;
-  transition: transform 4s ease-in-out;
-}
-
-.container .wheel .name {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  transform-origin: center center;
-  transform: rotate(calc(360deg / var(--total) * var(--i)));
-  clip-path: polygon(50% 50%, 100% 0, 100% 100%);
-  background: var(--clr);
-}
-
-
-.container .wheel .name span {
-  position: absolute;
-  width: calc(100% / var(--total)); /* Ajustar al tamaño del segmento */
-  text-align: center; /* Centrar el texto */
-  transform: rotate(calc(-360deg / var(--total) * var(--i))); /* Rotar para que el texto sea legible */
-  font-size: calc(10px + 1vw); /* Ajustar tamaño según el espacio */
-  font-weight: 600;
-  color: #fff;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-  white-space: nowrap; /* Evitar que el texto se desborde */
-}
-
-.modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  text-align: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  max-width: 100%;
-  width: 500px;
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-.modal-content p {
-  font-size: 18px;
-  color: #333;
-  margin-bottom: 20px;
-}
-
-#modal-close {
-  padding: 10px 20px;
-  background-color: #333;
-  color: #fff;
+.button-container button {
   border: none;
-  border-radius: 5px;
+  outline: none;
+  padding: 15px 100px;
+  background: #2287ed;
+  color: #fff;
+  font-size: 25px;
+  font-weight: bold;
   cursor: pointer;
-  font-size: 16px;
-  transition: background 0.3s;
 }
 
-#modal-close:hover {
-  background-color: #0056b3;
+.button-container button:hover {
+  background: #2889ea;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+.button-container button:active {
+  background: #1781ec;
 }
