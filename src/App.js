@@ -55,6 +55,13 @@ function App() {
             try {
                 await axios.patch(`${BACKEND_URL}/api/roulette`, { id: chosen._id });
 
+                const response = await axios.get(`${BACKEND_URL}/api/roulette`);
+                await axios.get(`${BACKEND_URL}/api/roulette/restart`);
+                const filteredParticipants = response.data.filter(
+                    (participant) => !participant.seleccionado
+                );
+
+                console.log('Participantes actualizados:', filteredParticipants);
                 setParticipants(filteredParticipants);
             } catch (error) {
                 console.error('Error al actualizar el participante:', error);
