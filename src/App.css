@@ -4,8 +4,8 @@
 }
 
 .roulette {
-    width: 300px;
-    height: 300px;
+    width: 500px;
+    height: 500px;
     margin: 0 auto;
     position: relative;
     border: 5px solid #000;
@@ -14,9 +14,10 @@
 }
 
 .wheel {
+    overflow: visible;
+    position: absolute;
     width: 100%;
     height: 100%;
-    position: relative;
     transition: transform 3s ease-out; /* Transición para simular el giro */
     transform: rotate(var(--wheel-rotation, 0deg)); /* Rotación controlada por CSS */
 }
@@ -27,6 +28,7 @@
 
 
 .segment {
+    overflow: visible;
     position: absolute;
     width: 100%;
     height: 100%;
@@ -34,10 +36,16 @@
     clip-path: polygon(50% 50%, 100% 0, 100% 100%);
     transform-origin: 50% 50%;
     display: flex;
-    justify-content: right; /* Alineación hacia la derecha */
+    justify-content: center; /* Alineación hacia la derecha */
     align-items: center;
 }
 
+.segment-text {
+    font-size: 14px;
+    text-align: center;
+    transform-origin: center;
+    white-space: nowrap;
+}
 
 
 
