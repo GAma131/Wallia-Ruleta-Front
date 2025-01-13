@@ -14,6 +14,7 @@ function App() {
 
   const fetchParticipants = async () => {
     try {
+      await axios.get(`${BACKEND_URL}/api/roulette/restart`);
       const response = await axios.get(`${BACKEND_URL}/api/roulette`);
       setParticipants(response.data); // Carga todos los participantes
       const unselectedParticipants = response.data.filter(
@@ -42,8 +43,8 @@ function App() {
   const spinWheel = () => {
     if (!wheelRef.current) return;
 
-    const duration = 2600; // Duración del giro en ms
-    const revolutions = 3; // Número de revoluciones completas
+    const duration = 3000; // Duración del giro en ms
+    const revolutions = 4; // Número de revoluciones completas
     const spinDirection = 1; // Dirección del giro (1: horario, -1: antihorario)
     const easingFunction = easing.sinInOut; // Función de easing opcional
 
@@ -65,10 +66,13 @@ function App() {
       const winner = participants.find(
         (participant) => participant.nombre === winnerLabel
       );
-      console.log(winner);
       setWinner(winnerLabel);
       sendSelectedParticipant(winner._id);
+      fetchParticipants();
     }, duration + 500);
+    setTimeout(() => {
+      window.location.reload();
+    }, duration + 2000);
   };
 
   useEffect(() => {
@@ -81,7 +85,13 @@ function App() {
     if (rouletteData.length > 0 && !wheelRef.current) {
       const props = {
         items: rouletteData,
-        itemLabelRadiousMax: 0.5,
+        name: "Takeaway",
+        radius: 0.89,
+        itemLabelRadiusMax: 0.37,
+        itemLabelColors: ["#000"],
+        itemBackgroundColors: ["#749cc9", "#4DA1A9", "#79D7BE", "#aed2e0"],
+        lineWidth: 0,
+        borderWidth: 0,
       };
 
       wheelRef.current = new Wheel(container, props);
@@ -104,6 +114,7 @@ function App() {
         </ul>
       </div>
       <div className="roulette-container">
+      <div className="roulette-pointer"></div>
         <div className="wheel-wrapper"></div>
         <button onClick={spinWheel} className="btn-spin">
           Girar
