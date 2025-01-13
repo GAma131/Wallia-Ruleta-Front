@@ -23,10 +23,9 @@ function App() {
       setRouletteData(
         unselectedParticipants.map((participant) => ({
           label: participant.nombre,
-          id: participant._id,
+          value: participant.id,
         })),
       );
-      console.log(rouletteData);
     } catch (error) {
       console.error("Error al cargar los participantes:", error);
     }
@@ -63,10 +62,9 @@ function App() {
     // Actualizar el estado del ganador
     setTimeout(() => {
       const winnerLabel = rouletteData[winningIndex]?.label || "Desconocido";
-      const winnerId = participants[winningIndex]?._id || "Desconocido";
-      console.log("Ganador:", winnerId);
+      console.log(rouletteData);
+      const winnerId = rouletteData[winningIndex].id || "Desconocido";
       setWinner(winnerLabel);
-      sendSelectedParticipant(winnerId);
 
     }, duration + 500);
   };
