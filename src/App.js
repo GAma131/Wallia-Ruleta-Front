@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./App.css";
 import * as easing from "./easing";
-import {Wheel} from 'https://cdn.jsdelivr.net/npm/spin-wheel@5.0.2/dist/spin-wheel-esm.js';
+import { Wheel } from "https://cdn.jsdelivr.net/npm/spin-wheel@5.0.2/dist/spin-wheel-esm.js";
 
 function App() {
   const [participants, setParticipants] = useState([]);
@@ -17,14 +17,13 @@ function App() {
       const response = await axios.get(`${BACKEND_URL}/api/roulette`);
       setParticipants(response.data); // Carga todos los participantes
       const unselectedParticipants = response.data.filter(
-        (participant) => !participant.seleccionado,
+        (participant) => !participant.seleccionado
       );
 
       setRouletteData(
         unselectedParticipants.map((participant) => ({
           label: participant.nombre,
-          value: participant.id,
-        })),
+        }))
       );
     } catch (error) {
       console.error("Error al cargar los participantes:", error);
@@ -61,11 +60,14 @@ function App() {
 
     // Actualizar el estado del ganador
     setTimeout(() => {
-      const winnerLabel = rouletteData[winningIndex]?.label || "Desconocido";
       console.log(rouletteData);
-      const winnerId = rouletteData[winningIndex].id || "Desconocido";
+      const winnerLabel = rouletteData[winningIndex]?.label || "Desconocido";
+      const winner = participants.find(
+        (participant) => participant.nombre === winnerLabel
+      );
+      console.log(winner);
       setWinner(winnerLabel);
-
+      sendSelectedParticipant(winner._id);
     }, duration + 500);
   };
 
@@ -76,7 +78,7 @@ function App() {
   useEffect(() => {
     const container = document.querySelector(".wheel-wrapper");
 
-    if(rouletteData.length > 0 && !wheelRef.current) {
+    if (rouletteData.length > 0 && !wheelRef.current) {
       const props = {
         items: rouletteData,
         itemLabelRadiousMax: 0.5,
@@ -115,6 +117,6 @@ function App() {
       </div>
     </div>
   );
-};
+}
 
 export default App;
