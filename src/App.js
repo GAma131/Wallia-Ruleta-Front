@@ -19,14 +19,25 @@ function App() {
       const unselectedParticipants = response.data.filter(
         (participant) => !participant.seleccionado,
       );
+
       setRouletteData(
         unselectedParticipants.map((participant) => ({
           label: participant.nombre,
+          id: participant._id,
         })),
       );
       console.log(rouletteData);
     } catch (error) {
       console.error("Error al cargar los participantes:", error);
+    }
+  };
+
+  const sendSelectedParticipant = async (selectedId) => {
+    try {
+      await axios.patch(`${BACKEND_URL}/api/roulette`, { id: selectedId });
+      console.log("Participante seleccionado enviado al backend:", selectedId);
+    } catch (error) {
+      console.error("Error al enviar el participante seleccionado:", error);
     }
   };
 
@@ -52,10 +63,11 @@ function App() {
     // Actualizar el estado del ganador
     setTimeout(() => {
       const winnerLabel = rouletteData[winningIndex]?.label || "Desconocido";
+      const winnerId = participants[winningIndex]?._id || "Desconocido";
+      console.log("Ganador:", winnerId);
       setWinner(winnerLabel);
+      sendSelectedParticipant(winnerId);
 
-      // Aquí podrías enviar el ganador al backend si es necesario
-      // axios.post(`${BACKEND_URL}/api/roulette/winner`, { winner: winnerLabel });
     }, duration + 500);
   };
 
@@ -68,7 +80,6 @@ function App() {
 
     if(rouletteData.length > 0 && !wheelRef.current) {
       const props = {
-        debug: true,
         items: rouletteData,
         itemLabelRadiousMax: 0.5,
       };
