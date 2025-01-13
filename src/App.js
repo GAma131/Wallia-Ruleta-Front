@@ -4,24 +4,27 @@ import "./App.css";
 import * as easing from "./easing";
 import { Wheel } from "https://cdn.jsdelivr.net/npm/spin-wheel@5.0.2/dist/spin-wheel-esm.js";
 import Swal from "sweetalert2"; // Importar SweetAlert
+import ruletaSound from "./assets/Ruleta.mp3";
+import aplausosSound from "./assets/Aplausos.mp3";
 
 function App() {
   const [participants, setParticipants] = useState([]);
   const [rouletteData, setRouletteData] = useState([]);
-  const [winner, setWinner] = useState("");
+  const [winner, setWinner] = useState(null);
   const wheelRef = useRef(null);
+  const ruletaAudioRef = useRef(new Audio(ruletaSound));
+  const aplausosAudioRef = useRef(new Audio(aplausosSound));
 
-  const BACKEND_URL = "http://localhost:3000"; // Cambiar esto según el backend
+  const BACKEND_URL = "http://localhost:5000";
 
   const fetchParticipants = async () => {
     try {
       await axios.get(`${BACKEND_URL}/api/roulette/restart`);
       const response = await axios.get(`${BACKEND_URL}/api/roulette`);
-      setParticipants(response.data); // Carga todos los participantes
+      setParticipants(response.data);
       const unselectedParticipants = response.data.filter(
         (participant) => !participant.seleccionado
       );
-
       setRouletteData(
         unselectedParticipants.map((participant) => ({
           label: participant.nombre,
@@ -32,22 +35,26 @@ function App() {
     }
   };
 
-  const sendSelectedParticipant = async (selectedId) => {
-    try {
-      await axios.patch(`${BACKEND_URL}/api/roulette`, { id: selectedId });
-      console.log("Participante seleccionado enviado al backend:", selectedId);
-    } catch (error) {
-      console.error("Error al enviar el participante seleccionado:", error);
-    }
+  const playSound = (audioRef) => {
+    audioRef.currentTime = 0;
+    audioRef.play();
+  };
+
+  const stopSound = (audioRef) => {
+    audioRef.pause();
+    audioRef.currentTime = 0;
   };
 
   const spinWheel = () => {
     if (!wheelRef.current) return;
 
-    const duration = 3000; // Duración del giro en ms
-    const revolutions = 4; // Número de revoluciones completas
-    const spinDirection = 1; // Dirección del giro (1: horario, -1: antihorario)
-    const easingFunction = easing.sinInOut; // Función de easing opcional
+    const ruletaAudio = ruletaAudioRef.current;
+    playSound(ruletaAudio);
+
+    const duration = 3000;
+    const revolutions = 4;
+    const spinDirection = 1;
+    const easingFunction = easing.sinInOut;
 
     const winningIndex = Math.floor(Math.random() * rouletteData.length);
 
@@ -60,29 +67,50 @@ function App() {
       easingFunction
     );
 
-    // Actualizar el estado del ganador
     setTimeout(() => {
-      console.log(rouletteData);
+      stopSound(ruletaAudio);
+
       const winnerLabel = rouletteData[winningIndex]?.label || "Desconocido";
-      const winner = participants.find(
+      const winnerParticipant = participants.find(
         (participant) => participant.nombre === winnerLabel
       );
 
-      setWinner(winnerLabel);
-      sendSelectedParticipant(winner._id);
+      setWinner({ label: winnerLabel, participant: winnerParticipant });
 
-      // Mostrar alerta con SweetAlert
-      Swal.fire({
-        title: "¡Tenemos un ganador!",
-        text: `El ganador es: ${winnerLabel}`,
-        icon: "success",
-        confirmButtonText: "¡Entendido!",
-      }).then(() => {
-        window.location.reload(); // Recargar la página después de aceptar
-      });
+      if (winnerParticipant) {
+        playSound(aplausosAudioRef.current);
 
-      fetchParticipants();
-    }, duration + 500);
+        Swal.fire({
+          title: "¡Tenemos un ganador!",
+          html: `<span style="color:rgb(255, 255, 255); font-size: 1.5rem;">El ganador es: ${winnerLabel}</span>`,
+          icon: "success",
+          showCancelButton: true,
+          confirmButtonText: "¡Entendido!",
+          cancelButtonText: "Cancelar",
+          customClass: {
+            popup: "custom-popup",
+            title: "custom-title",
+            confirmButton: "custom-button",
+            cancelButton: "custom-button",
+          },
+        }).then((result) => {
+          stopSound(aplausosAudioRef.current);
+          if (result.isConfirmed) {
+            axios
+              .patch(`${BACKEND_URL}/api/roulette`, { id: winnerParticipant._id })
+              .then(() => {
+                window.location.reload();
+              })
+              .catch((error) => {
+                console.error("Error al actualizar el participante:", error);
+              });
+          } else {
+            console.log("Cancelado por el usuario. No se realizó ningún cambio.");
+            setWinner(null); // Reiniciar el ganador
+          }
+        });
+      }
+    }, duration);
   };
 
   useEffect(() => {
@@ -132,7 +160,7 @@ function App() {
         {winner && (
           <div className="winner-announcement">
             <h3>¡Ganador!</h3>
-            <p>{winner}</p>
+            <p>{winner.label}</p>
           </div>
         )}
       </div>

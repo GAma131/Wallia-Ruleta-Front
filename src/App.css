@@ -123,3 +123,35 @@ button:disabled {
   border-color: #000000;
   clip-path: polygon(50% 100%, 100% 0%, 0% 0%);
 }
+
+.custom-popup {
+    background-color: #000000; /* Color de fondo */
+    border: 2px solid #4caf50; /* Borde del popup */
+  }
+  
+  .custom-title {
+    color: #4caf50; /* Color del texto del título */
+    font-size: 1.5rem; /* Tamaño de fuente */
+  }
+  
+  .custom-button {
+    background-color: #4caf50; /* Color del botón confirmar */
+    color: #fff;
+    border-radius: 5px;
+    padding: 10px 20px;
+  }
+  
+  .swal2-cancel {
+    background-color: #f44336; /* Color del botón cancelar */
+    color: #fff;
+    border-radius: 5px;
+    padding: 10px 20px;
+    margin-left: 10px; /* Espaciado entre botones */
+  }
+  
+  .swal2-cancel:hover {
+    background-color: #d32f2f; /* Cambiar color al pasar el mouse */
+  }
+  
+  
+  
