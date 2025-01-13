@@ -89,7 +89,7 @@ button {
 }
 
 button:hover:not(:disabled) {
-  background-color: #2E5077;
+  background-color: #2e5077;
   color: white;
   transform: scale(1.05); /* Efecto de zoom */
 }

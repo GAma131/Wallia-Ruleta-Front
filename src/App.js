@@ -3,6 +3,7 @@ import axios from "axios";
 import "./App.css";
 import * as easing from "./easing";
 import { Wheel } from "https://cdn.jsdelivr.net/npm/spin-wheel@5.0.2/dist/spin-wheel-esm.js";
+import Swal from "sweetalert2"; // Importar SweetAlert
 
 function App() {
   const [participants, setParticipants] = useState([]);
@@ -66,13 +67,22 @@ function App() {
       const winner = participants.find(
         (participant) => participant.nombre === winnerLabel
       );
+
       setWinner(winnerLabel);
       sendSelectedParticipant(winner._id);
+
+      // Mostrar alerta con SweetAlert
+      Swal.fire({
+        title: "¡Tenemos un ganador!",
+        text: `El ganador es: ${winnerLabel}`,
+        icon: "success",
+        confirmButtonText: "¡Entendido!",
+      }).then(() => {
+        window.location.reload(); // Recargar la página después de aceptar
+      });
+
       fetchParticipants();
     }, duration + 500);
-    setTimeout(() => {
-      window.location.reload();
-    }, duration + 2000);
   };
 
   useEffect(() => {
@@ -114,7 +124,7 @@ function App() {
         </ul>
       </div>
       <div className="roulette-container">
-      <div className="roulette-pointer"></div>
+        <div className="roulette-pointer"></div>
         <div className="wheel-wrapper"></div>
         <button onClick={spinWheel} className="btn-spin">
           Girar
