@@ -218,5 +218,7 @@ body {
     z-index: 1000;
 }
 
-  
-  
+.swal-participant {
+    color: white; /* Color blanco */
+    font-weight: bold; /* Negrita opcional */
+  }
