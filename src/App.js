@@ -23,23 +23,33 @@ function App() {
   const ruletaAudioRef = useRef(new Audio(ruletaSound));
   const aplausosAudioRef = useRef(new Audio(aplausosSound));
 
-  const BACKEND_URL = "http://localhost:3000";
+  const BACKEND_URL = "http://localhost:5000";
 
   const formatDate = (date) => date.toISOString().split("T")[0];
 
   const fetchParticipants = async () => {
     try {
-      const res = await axios.post(`${BACKEND_URL}/api/roulette/restart`, {
-        depa: filter,
-      });
-      console.log("res: ", res.data, filter);
+        // Fetch participants and apply filter
+        const res = await axios.post(`${BACKEND_URL}/api/roulette/restart`, { depa: filter });
+        console.log("res: ", res.data, filter);
 
-      const response = await axios.get(`${BACKEND_URL}/api/roulette`);
-      setParticipants(response.data);
-      applyFilter(response.data, filter); // Aplicar filtro inicial
-      updateCalendarData(response.data);
-    } catch (error) {}
-  };
+        const response = await axios.get(`${BACKEND_URL}/api/roulette`);
+        setParticipants(response.data);
+        applyFilter(response.data, filter); // Aplicar filtro inicial
+
+        // Fetch calendar data from the API
+        const calendarResponse = await axios.get(`${BACKEND_URL}/api/roulette/historico`);
+        const formattedCalendarData = calendarResponse.data.reduce((acc, entry) => {
+            const date = entry.fecha.split("T")[0];
+            if (!acc[date]) acc[date] = [];
+            acc[date].push(entry.nombre);
+            return acc;
+        }, {});
+        setCalendarData(formattedCalendarData);
+    } catch (error) {
+        console.error("Error fetching participants or calendar data:", error);
+    }
+};
 
   const applyFilter = (allParticipants, filter) => {
     let filtered = allParticipants;
@@ -210,7 +220,14 @@ function App() {
   return (
     <div className="app-container">
       <div className="participants-list">
-        <h2>Participantes</h2>
+        <h2>Participantes<div className="selector"><select
+          id="filter-select"
+          value={filter}
+          onChange={(e) => handleFilterChange(e.target.value)}
+        >
+          <option value="web">WEB</option>
+          <option value="app">APP</option>
+        </select></div></h2> 
         <ul>
           {filteredParticipants.map((participant) => (
             <li
@@ -223,20 +240,7 @@ function App() {
         </ul>
       </div>
       <div className="roulette-container">
-        <div className="roulette-controls">
-          <button
-            onClick={() => handleFilterChange("web")}
-            className="btn-filter"
-          >
-            WEB
-          </button>
-          <button
-            onClick={() => handleFilterChange("app")}
-            className="btn-filter"
-          >
-            APP
-          </button>
-        </div>
+        <div className="roulette-controls"></div>
         <div className="roulette-pointer"></div>
         <div className="wheel-wrapper"></div>
         <button onClick={spinWheel} className="btn-spin">
