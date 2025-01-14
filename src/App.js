@@ -16,34 +16,34 @@ function App() {
   const [winner, setWinner] = useState(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [calendarData, setCalendarData] = useState({});
-  const [filter, setFilter] = useState("all"); // Filtro activo ("web", "app", "all")
+  const [filter, setFilter] = useState(() => {
+    return localStorage.getItem("filter") || "web";
+  });
   const wheelRef = useRef(null);
   const ruletaAudioRef = useRef(new Audio(ruletaSound));
   const aplausosAudioRef = useRef(new Audio(aplausosSound));
 
-  const BACKEND_URL = "http://localhost:5000";
+  const BACKEND_URL = "http://localhost:3000";
 
   const formatDate = (date) => date.toISOString().split("T")[0];
 
   const fetchParticipants = async () => {
     try {
-      await axios.get(`${BACKEND_URL}/api/roulette/restart`);
+      const res = await axios.post(`${BACKEND_URL}/api/roulette/restart`, {
+        depa: filter,
+      });
+      console.log("res: ", res.data, filter);
+
       const response = await axios.get(`${BACKEND_URL}/api/roulette`);
       setParticipants(response.data);
       applyFilter(response.data, filter); // Aplicar filtro inicial
       updateCalendarData(response.data);
-    } catch (error) {
-      console.error("Error al cargar los participantes:", error);
-    }
+    } catch (error) {}
   };
 
   const applyFilter = (allParticipants, filter) => {
     let filtered = allParticipants;
-    if (filter === "web") {
-      filtered = allParticipants.filter((p) => p.departamento === "web");
-    } else if (filter === "app") {
-      filtered = allParticipants.filter((p) => p.departamento === "app");
-    }
+    filtered = allParticipants.filter((p) => p.departamento === filter);
     setFilteredParticipants(filtered);
 
     const unselectedParticipants = filtered.filter((p) => !p.seleccionado);
@@ -51,7 +51,10 @@ function App() {
   };
 
   const updateCalendarData = (participants) => {
-    const selectedParticipants = participants.filter((p) => p.seleccionado);
+    const selectedParticipants = participants.filter(
+      (p) => p.seleccionado && p.departamento === filter
+    );
+    console.log("selectedParticipants: ", selectedParticipants);
     const calendarData = selectedParticipants.reduce((acc, p) => {
       const date = p.fecha.split("T")[0];
       if (!acc[date]) acc[date] = [];
@@ -150,7 +153,9 @@ function App() {
     if (names && names.length > 0) {
       Swal.fire({
         title: `Participantes del ${day}`,
-        html: names.map((name) => `<span class="swal-participant">${name}</span>`).join("<br>"),
+        html: names
+          .map((name) => `<span class="swal-participant">${name}</span>`)
+          .join("<br>"),
         icon: "info",
         confirmButtonText: "Cerrar",
         customClass: {
@@ -176,7 +181,9 @@ function App() {
 
   const handleFilterChange = (newFilter) => {
     setFilter(newFilter);
+    localStorage.setItem("filter", newFilter);
     applyFilter(participants, newFilter);
+    window.location.reload();
   };
 
   useEffect(() => {
@@ -185,7 +192,6 @@ function App() {
 
   useEffect(() => {
     const container = document.querySelector(".wheel-wrapper");
-
     if (rouletteData.length > 0 && !wheelRef.current) {
       const props = {
         items: rouletteData,
@@ -197,7 +203,6 @@ function App() {
         lineWidth: 0,
         borderWidth: 0,
       };
-
       wheelRef.current = new Wheel(container, props);
     }
   }, [rouletteData]);
@@ -219,10 +224,16 @@ function App() {
       </div>
       <div className="roulette-container">
         <div className="roulette-controls">
-          <button onClick={() => handleFilterChange("web")} className="btn-filter">
+          <button
+            onClick={() => handleFilterChange("web")}
+            className="btn-filter"
+          >
             WEB
           </button>
-          <button onClick={() => handleFilterChange("app")} className="btn-filter">
+          <button
+            onClick={() => handleFilterChange("app")}
+            className="btn-filter"
+          >
             APP
           </button>
         </div>
