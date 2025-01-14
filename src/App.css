@@ -6,7 +6,7 @@ body {
     margin: 0;
     padding: 0;
   }
-  
+
   /* Contenedor principal */
   .app-container {
     display: flex;
@@ -16,7 +16,7 @@ body {
     gap: 20px;
     flex-wrap: nowrap; /* Evitar apilamiento en pantallas grandes */
   }
-  
+
   /* Lista de participantes */
   .participants-list {
     width: 40%; /* Ocupa un ancho fijo en pantallas grandes */
@@ -26,14 +26,14 @@ body {
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Sombra */
   }
-  
+
   .participants-list h2 {
     text-align: center;
     font-size: 20px;
     margin-bottom: 15px;
     color: #f1f1f1;
   }
-  
+
   .participants-list ul {
     list-style: none;
     padding: 0;
@@ -41,7 +41,7 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Ajuste dinámico de columnas */
     gap: 15px; /* Espacio entre los elementos */
   }
-  
+
   .participants-list li {
     font-size: 16px;
     padding: 10px;
@@ -52,18 +52,18 @@ body {
     text-align: center;
     transition: background-color 0.3s, transform 0.3s;
   }
-  
+
   .participants-list li.selected {
     text-decoration: line-through;
     color: #777777; /* Color gris para los seleccionados */
     background-color: #333;
   }
-  
+
   .participants-list li:hover:not(.selected) {
     background-color: #444;
     transform: scale(1.05); /* Pequeño efecto al pasar el mouse */
   }
-  
+
   /* Contenedor de la ruleta */
   .roulette-container {
     display: flex;
@@ -76,7 +76,7 @@ body {
     border: 2px solid #333; /* Borde sutil */
     border-radius: 10px;
   }
-  
+
   /* Botones */
   button {
     width: 200px;
@@ -91,18 +91,18 @@ body {
     border-radius: 5px;
     transition: background-color 0.3s, transform 0.3s;
   }
-  
+
   button:hover:not(:disabled) {
     background-color: #2e5077;
     color: white;
     transform: scale(1.05); /* Efecto de zoom */
   }
-  
+
   button:disabled {
     background-color: #555;
     cursor: not-allowed;
   }
-  
+
   /* Ruleta */
   .wheel-wrapper {
     overflow: hidden;
@@ -118,25 +118,25 @@ body {
     background-color: white; /* Color del puntero */
     clip-path: polygon(50% 100%, 100% 0%, 0% 0%);
   }
-  
+
   /* SweetAlert Customization */
   .custom-popup {
     background-color: #000000; /* Color de fondo */
     border: 2px solid #4caf50; /* Borde del popup */
   }
-  
+
   .custom-title {
     color: #4caf50; /* Color del texto del título */
     font-size: 1.5rem; /* Tamaño de fuente */
   }
-  
+
   .custom-button {
     background-color: #4caf50; /* Color del botón confirmar */
     color: #fff;
     border-radius: 5px;
     padding: 10px 20px;
   }
-  
+
   .swal2-cancel {
     background-color: #f44336; /* Color del botón cancelar */
     color: #fff;
@@ -144,46 +144,60 @@ body {
     padding: 10px 20px;
     margin-left: 10px; /* Espaciado entre botones */
   }
-  
+
   .swal2-cancel:hover {
     background-color: #d32f2f; /* Cambiar color al pasar el mouse */
   }
-  
+
   /* Responsividad */
   @media (max-width: 768px) {
     .app-container {
       flex-direction: column; /* Apilar ruleta y nombres en columna */
       align-items: center; /* Centrar los elementos */
     }
-  
+
     .roulette-container {
       order: -1; /* Mover la ruleta al principio */
       width: 100%; /* Ajustar al ancho disponible */
       max-width: 600px; /* Máximo ancho */
     }
-  
+
     .participants-list {
       width: 100%; /* Los nombres ocupan todo el ancho */
       max-width: none; /* Sin límite de ancho */
       margin-top: 20px; /* Separar visualmente de la ruleta */
     }
-  
+
     .participants-list ul {
       grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Ajuste automático de columnas */
     }
-  
+
     .wheel-wrapper {
       height: 400px; /* Reducir tamaño de la ruleta */
       width: 400px;
     }
   }
-  
+
+  .participants-header{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .participants-select{
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #939393;
+  }
+
   @media (max-width: 480px) {
     .wheel-wrapper {
       height: 300px; /* Tamaño aún más reducido */
       width: 300px;
     }
-  
+
     .participants-list ul {
       grid-template-columns: 1fr; /* Una sola columna para los nombres */
     }
@@ -205,7 +219,7 @@ body {
     top: 10px;
     right: 10px;
 }
-  
+
 .calendar-modal {
     position: fixed;
     top: 20%;
@@ -218,5 +232,7 @@ body {
     z-index: 1000;
 }
 
-  
-  
+.swal-participant {
+    color: white; /* Color blanco */
+    font-weight: bold; /* Negrita opcional */
+  }

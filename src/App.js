@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./App.css";
-import Calendar from "react-calendar"; // Importar la librería del calendario
-import "react-calendar/dist/Calendar.css"; // Estilo por defecto de react-calendar
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
 import * as easing from "./easing";
 import { Wheel } from "https://cdn.jsdelivr.net/npm/spin-wheel@5.0.2/dist/spin-wheel-esm.js";
 import Swal from "sweetalert2";
@@ -11,45 +11,84 @@ import aplausosSound from "./assets/Aplausos.mp3";
 
 function App() {
   const [participants, setParticipants] = useState([]);
+  const [filteredParticipants, setFilteredParticipants] = useState([]); // Participantes filtrados
   const [rouletteData, setRouletteData] = useState([]);
   const [winner, setWinner] = useState(null);
-  const [calendarOpen, setCalendarOpen] = useState(false); // Control del calendario
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [calendarData, setCalendarData] = useState({});
+  const [filter, setFilter] = useState(() => {
+    return localStorage.getItem("filter") || "web";
+  });
   const wheelRef = useRef(null);
   const ruletaAudioRef = useRef(new Audio(ruletaSound));
   const aplausosAudioRef = useRef(new Audio(aplausosSound));
 
-  const BACKEND_URL = "http://localhost:5000";
+  const BACKEND_URL = "http://localhost:3000";
 
-  // Formatear fechas en formato ISO para comparar con las del calendario
   const formatDate = (date) => date.toISOString().split("T")[0];
 
   const fetchParticipants = async () => {
     try {
-      await axios.get(`${BACKEND_URL}/api/roulette/restart`);
+      // Fetch participants and apply filter
+      const res = await axios.post(`${BACKEND_URL}/api/roulette/restart`, {
+        depa: filter,
+      });
+      console.log("res: ", res.data, filter);
+
       const response = await axios.get(`${BACKEND_URL}/api/roulette`);
       setParticipants(response.data);
+      applyFilter(response.data, filter); // Aplicar filtro inicial
 
-      const unselectedParticipants = response.data.filter(
-        (participant) => !participant.seleccionado
-      );
-      setRouletteData(
-        unselectedParticipants.map((participant) => ({
-          label: participant.nombre,
-        }))
+      // Fetch calendar data from the API
+      const calendarResponse = await axios.get(
+        `${BACKEND_URL}/api/roulette/historico`
       );
 
-      // Crear datos para el calendario
-      const calendarData = response.data.reduce((acc, participant) => {
-        const date = participant.fecha.split("T")[0]; // Asegurar formato "YYYY-MM-DD"
-        if (!acc[date]) acc[date] = [];
-        acc[date].push(participant.nombre);
-        return acc;
-      }, {});
-      setCalendarData(calendarData);
+      // Filtrar los participantes según el departamento
+      const calendarFilter = calendarResponse.data.filter(
+        (participant) => participant.departamento === filter
+      );
+
+      // Formatear los datos del calendario
+      const formattedCalendarData = calendarFilter.reduce(
+        (acc, entry) => {
+          const date = entry.fecha.split("T")[0];
+          if (!acc[date]) acc[date] = [];
+          acc[date].push(entry.nombre);
+          return acc;
+        },
+        {}
+      );
+
+      // Establecer los datos del calendario en el estado
+      setCalendarData(formattedCalendarData);
+
     } catch (error) {
-      console.error("Error al cargar los participantes:", error);
+      console.error("Error fetching participants or calendar data:", error);
     }
+  };
+
+  const applyFilter = (allParticipants, filter) => {
+    let filtered = allParticipants;
+    filtered = allParticipants.filter((p) => p.departamento === filter);
+    setFilteredParticipants(filtered);
+
+    const unselectedParticipants = filtered.filter((p) => !p.seleccionado);
+    setRouletteData(unselectedParticipants.map((p) => ({ label: p.nombre })));
+  };
+
+  const updateCalendarData = (participants) => {
+    const selectedParticipants = participants.filter(
+      (p) => p.seleccionado && p.departamento === filter
+    );
+    console.log("selectedParticipants: ", selectedParticipants);
+    const calendarData = selectedParticipants.reduce((acc, p) => {
+      const date = p.fecha.split("T")[0];
+      if (!acc[date]) acc[date] = [];
+      acc[date].push(p.nombre);
+      return acc;
+    }, {});
+    setCalendarData(calendarData);
   };
 
   const playSound = (audioRef) => {
@@ -88,7 +127,7 @@ function App() {
       stopSound(ruletaAudio);
 
       const winnerLabel = rouletteData[winningIndex]?.label || "Desconocido";
-      const winnerParticipant = participants.find(
+      const winnerParticipant = filteredParticipants.find(
         (participant) => participant.nombre === winnerLabel
       );
 
@@ -113,11 +152,11 @@ function App() {
         }).then((result) => {
           stopSound(aplausosAudioRef.current);
           if (result.isConfirmed) {
-            const today = new Date().toISOString(); // Fecha actual en formato ISO
+            const today = new Date().toISOString();
             axios
               .patch(`${BACKEND_URL}/api/roulette`, {
                 id: winnerParticipant._id,
-                fecha: today, // Actualizar la fecha del ganador
+                fecha: today,
               })
               .then(() => {
                 window.location.reload();
@@ -126,7 +165,7 @@ function App() {
                 console.error("Error al actualizar el participante:", error);
               });
           } else {
-            setWinner(null); // Reiniciar el ganador si se cancela
+            setWinner(null);
           }
         });
       }
@@ -135,13 +174,51 @@ function App() {
 
   const toggleCalendar = () => setCalendarOpen(!calendarOpen);
 
+  const handleDateClick = (date) => {
+    const day = formatDate(date);
+    const names = calendarData[day];
+    if (names && names.length > 0) {
+      Swal.fire({
+        title: `Participantes del ${day}`,
+        html: names
+          .map((name) => `<span class="swal-participant">${name}</span>`)
+          .join("<br>"),
+        icon: "info",
+        confirmButtonText: "Cerrar",
+        customClass: {
+          popup: "custom-popup",
+          title: "custom-title",
+          confirmButton: "custom-button",
+        },
+      });
+    } else {
+      Swal.fire({
+        title: `Sin participantes`,
+        text: `No hay participantes asignados para esta fecha.`,
+        icon: "warning",
+        confirmButtonText: "Cerrar",
+        customClass: {
+          popup: "custom-popup",
+          title: "custom-title",
+          confirmButton: "custom-button",
+        },
+      });
+    }
+  };
+
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter);
+    localStorage.setItem("filter", newFilter);
+    applyFilter(participants, newFilter);
+    window.location.reload();
+  };
+
   useEffect(() => {
     fetchParticipants();
   }, []);
 
   useEffect(() => {
     const container = document.querySelector(".wheel-wrapper");
-
     if (rouletteData.length > 0 && !wheelRef.current) {
       const props = {
         items: rouletteData,
@@ -153,7 +230,6 @@ function App() {
         lineWidth: 0,
         borderWidth: 0,
       };
-
       wheelRef.current = new Wheel(container, props);
     }
   }, [rouletteData]);
@@ -161,9 +237,20 @@ function App() {
   return (
     <div className="app-container">
       <div className="participants-list">
-        <h2>Participantes</h2>
+        <div className="participants-header">
+          <h2>Participantes</h2>
+          <select
+            className="participants-select"
+            id="filter-select"
+            value={filter}
+            onChange={(e) => handleFilterChange(e.target.value)}
+          >
+            <option value="web">WEB</option>
+            <option value="app">APP</option>
+          </select>
+        </div>
         <ul>
-          {participants.map((participant) => (
+          {filteredParticipants.map((participant) => (
             <li
               key={participant._id}
               className={participant.seleccionado ? "selected" : ""}
@@ -174,6 +261,7 @@ function App() {
         </ul>
       </div>
       <div className="roulette-container">
+        <div className="roulette-controls"></div>
         <div className="roulette-pointer"></div>
         <div className="wheel-wrapper"></div>
         <button onClick={spinWheel} className="btn-spin">
@@ -184,18 +272,7 @@ function App() {
         </button>
         {calendarOpen && (
           <div className="calendar-modal">
-            <Calendar
-              tileContent={({ date }) => {
-                const day = formatDate(date);
-                return (
-                  <div className="calendar-participants">
-                    {calendarData[day]?.map((name, idx) => (
-                      <div key={idx}>{name}</div>
-                    ))}
-                  </div>
-                );
-              }}
-            />
+            <Calendar onClickDay={handleDateClick} />
           </div>
         )}
         {winner && (
