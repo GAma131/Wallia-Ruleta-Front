@@ -23,33 +23,50 @@ function App() {
   const ruletaAudioRef = useRef(new Audio(ruletaSound));
   const aplausosAudioRef = useRef(new Audio(aplausosSound));
 
-  const BACKEND_URL = "http://localhost:5000";
+  const BACKEND_URL = "http://localhost:3000";
 
   const formatDate = (date) => date.toISOString().split("T")[0];
 
   const fetchParticipants = async () => {
     try {
-        // Fetch participants and apply filter
-        const res = await axios.post(`${BACKEND_URL}/api/roulette/restart`, { depa: filter });
-        console.log("res: ", res.data, filter);
+      // Fetch participants and apply filter
+      const res = await axios.post(`${BACKEND_URL}/api/roulette/restart`, {
+        depa: filter,
+      });
+      console.log("res: ", res.data, filter);
 
-        const response = await axios.get(`${BACKEND_URL}/api/roulette`);
-        setParticipants(response.data);
-        applyFilter(response.data, filter); // Aplicar filtro inicial
+      const response = await axios.get(`${BACKEND_URL}/api/roulette`);
+      setParticipants(response.data);
+      applyFilter(response.data, filter); // Aplicar filtro inicial
 
-        // Fetch calendar data from the API
-        const calendarResponse = await axios.get(`${BACKEND_URL}/api/roulette/historico`);
-        const formattedCalendarData = calendarResponse.data.reduce((acc, entry) => {
-            const date = entry.fecha.split("T")[0];
-            if (!acc[date]) acc[date] = [];
-            acc[date].push(entry.nombre);
-            return acc;
-        }, {});
-        setCalendarData(formattedCalendarData);
+      // Fetch calendar data from the API
+      const calendarResponse = await axios.get(
+        `${BACKEND_URL}/api/roulette/historico`
+      );
+
+      // Filtrar los participantes según el departamento
+      const calendarFilter = calendarResponse.data.filter(
+        (participant) => participant.departamento === filter
+      );
+
+      // Formatear los datos del calendario
+      const formattedCalendarData = calendarFilter.reduce(
+        (acc, entry) => {
+          const date = entry.fecha.split("T")[0];
+          if (!acc[date]) acc[date] = [];
+          acc[date].push(entry.nombre);
+          return acc;
+        },
+        {}
+      );
+
+      // Establecer los datos del calendario en el estado
+      setCalendarData(formattedCalendarData);
+
     } catch (error) {
-        console.error("Error fetching participants or calendar data:", error);
+      console.error("Error fetching participants or calendar data:", error);
     }
-};
+  };
 
   const applyFilter = (allParticipants, filter) => {
     let filtered = allParticipants;
@@ -220,14 +237,18 @@ function App() {
   return (
     <div className="app-container">
       <div className="participants-list">
-        <h2>Participantes<div className="selector"><select
-          id="filter-select"
-          value={filter}
-          onChange={(e) => handleFilterChange(e.target.value)}
-        >
-          <option value="web">WEB</option>
-          <option value="app">APP</option>
-        </select></div></h2> 
+        <div className="participants-header">
+          <h2>Participantes</h2>
+          <select
+            className="participants-select"
+            id="filter-select"
+            value={filter}
+            onChange={(e) => handleFilterChange(e.target.value)}
+          >
+            <option value="web">WEB</option>
+            <option value="app">APP</option>
+          </select>
+        </div>
         <ul>
           {filteredParticipants.map((participant) => (
             <li
