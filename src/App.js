@@ -50,19 +50,15 @@ function App() {
       );
 
       // Formatear los datos del calendario
-      const formattedCalendarData = calendarFilter.reduce(
-        (acc, entry) => {
-          const date = entry.fecha.split("T")[0];
-          if (!acc[date]) acc[date] = [];
-          acc[date].push(entry.nombre);
-          return acc;
-        },
-        {}
-      );
+      const formattedCalendarData = calendarFilter.reduce((acc, entry) => {
+        const date = entry.fecha.split("T")[0];
+        if (!acc[date]) acc[date] = [];
+        acc[date].push(entry.nombre);
+        return acc;
+      }, {});
 
       // Establecer los datos del calendario en el estado
       setCalendarData(formattedCalendarData);
-
     } catch (error) {
       console.error("Error fetching participants or calendar data:", error);
     }
@@ -226,7 +222,7 @@ function App() {
         radius: 0.89,
         itemLabelRadiusMax: 0.37,
         itemLabelColors: ["#000"],
-        itemBackgroundColors: ["#749cc9", "#4DA1A9", "#79D7BE", "#aed2e0"],
+        itemBackgroundColors: ["#2DB7E6", "#304D93", "#22A5C4", "#1F3360"],
         lineWidth: 0,
         borderWidth: 0,
       };
