@@ -35,7 +35,6 @@ function App() {
 
       const response = await axios.get(`${BACKEND_URL}/api/roulette`);
       setParticipants(response.data);
-      console.log(participants)
 
       applyFilter(response.data, filter);
 
@@ -238,7 +237,7 @@ function App() {
           </select>
         </div>
         <ul>
-          {filteredParticipants.map((participant) => (
+          {participants.map((participant) => (
             <li
               key={participant._id}
               className={
