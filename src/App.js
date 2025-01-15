@@ -42,8 +42,6 @@ function App() {
         `${BACKEND_URL}/api/roulette/historico`
       );
 
-      console.log(calendarResponse.data);
-
       const calendarFilter = calendarResponse.data.filter((participant) =>
         participant.departamento.includes(filter)
       );
@@ -63,7 +61,6 @@ function App() {
       }, {});
 
       setCalendarData(formattedCalendarData);
-      console.log("Datos del calendario:", formattedCalendarData);
     } catch (error) {
       console.error("Error fetching participants or calendar data:", error);
     }
@@ -145,7 +142,6 @@ function App() {
         }).then((result) => {
           stopSound(aplausosAudioRef.current);
           if (result.isConfirmed) {
-            const today = new Date().toISOString();
             axios
               .patch(`${BACKEND_URL}/api/roulette`, {
                 id: winnerParticipant._id,
@@ -158,6 +154,9 @@ function App() {
                 console.error("Error al actualizar el participante:", error);
               });
           } else {
+            setRouletteData((prevData) =>
+              prevData.fill((item) => item.nombre !== winnerLabel)
+            );
             setWinner(null);
           }
         });
@@ -170,9 +169,6 @@ function App() {
   const handleDateClick = (date) => {
     const day = formatDate(date); // Convertir la fecha seleccionada a YYYY-MM-DD
     const names = calendarData[day]; // Buscar los participantes para esa fecha
-
-    console.log("Fecha seleccionada:", day); // Depuración
-    console.log("Participantes encontrados:", names); // Depuración
 
     if (names && Array.isArray(names) && names.length > 0) {
       Swal.fire({
@@ -217,19 +213,23 @@ function App() {
   useEffect(() => {
     const handleClickOutside = (event) => {
       const calendarModal = document.querySelector(".calendar-modal");
-      if (calendarOpen && calendarModal && !calendarModal.contains(event.target)) {
+      if (
+        calendarOpen &&
+        calendarModal &&
+        !calendarModal.contains(event.target)
+      ) {
         setCalendarOpen(false); // Cierra el calendario si se hace clic fuera
       }
     };
-  
+
     // Agrega el evento al documento
     document.addEventListener("mousedown", handleClickOutside);
-  
+
     // Limpia el evento al desmontar el componente
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [calendarOpen]); // Solo se ejecuta cuando `calendarOpen` cambia  
+  }, [calendarOpen]); // Solo se ejecuta cuando `calendarOpen` cambia
 
   useEffect(() => {
     const container = document.querySelector(".wheel-wrapper");
