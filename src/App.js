@@ -33,7 +33,6 @@ function App() {
       const res = await axios.post(`${BACKEND_URL}/api/roulette/restart`, {
         depa: filter,
       });
-      console.log("res: ", res.data, filter);
 
       const response = await axios.get(`${BACKEND_URL}/api/roulette`);
       setParticipants(response.data);
@@ -45,9 +44,14 @@ function App() {
       );
 
       // Filtrar los participantes según el departamento
-      const calendarFilter = calendarResponse.data.filter(
-        (participant) => participant.departamento === filter
-      );
+      let calendarFilter = calendarResponse.data;
+      if (filter != "all") {
+        calendarFilter = calendarResponse.data.filter(
+          (participant) => participant.departamento === filter
+        );
+      }
+
+      console.log(calendarFilter);
 
       // Formatear los datos del calendario
       const formattedCalendarData = calendarFilter.reduce((acc, entry) => {
@@ -66,7 +70,9 @@ function App() {
 
   const applyFilter = (allParticipants, filter) => {
     let filtered = allParticipants;
-    filtered = allParticipants.filter((p) => p.departamento === filter);
+    if (filter != "all") {
+      filtered = allParticipants.filter((p) => p.departamento === filter);
+    }
     setFilteredParticipants(filtered);
 
     const unselectedParticipants = filtered.filter((p) => !p.seleccionado);
@@ -77,7 +83,6 @@ function App() {
     const selectedParticipants = participants.filter(
       (p) => p.seleccionado && p.departamento === filter
     );
-    console.log("selectedParticipants: ", selectedParticipants);
     const calendarData = selectedParticipants.reduce((acc, p) => {
       const date = p.fecha.split("T")[0];
       if (!acc[date]) acc[date] = [];
@@ -243,6 +248,7 @@ function App() {
           >
             <option value="web">WEB</option>
             <option value="app">APP</option>
+            <option value="all">ALL</option>
           </select>
         </div>
         <ul>
