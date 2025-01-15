@@ -32,41 +32,42 @@ function App() {
       await axios.post(`${BACKEND_URL}/api/roulette/restart`, {
         depa: filter,
       });
-  
+
       const response = await axios.get(`${BACKEND_URL}/api/roulette`);
       setParticipants(response.data);
-  
+
       applyFilter(response.data, filter);
-  
+
       const calendarResponse = await axios.get(
         `${BACKEND_URL}/api/roulette/historico`
       );
-  
-      const calendarFilter =
-        filter === "all"
-          ? calendarResponse.data
-          : calendarResponse.data.filter((participant) =>
-              participant.departamento.includes(filter)
-            );
-  
+
+      console.log(calendarResponse.data);
+
+      const calendarFilter = calendarResponse.data.filter((participant) =>
+        participant.departamento.includes(filter)
+      );
+
       // Ajustar el formato de la fecha y organizar los datos
       const formattedCalendarData = calendarFilter.reduce((acc, entry) => {
         // Convertir la fecha de "DD/MM/YYYY" a "YYYY-MM-DD"
         const [day, month, year] = entry.fecha.split(",")[0].split("/");
-        const formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-  
+        const formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(
+          2,
+          "0"
+        )}`;
+
         if (!acc[formattedDate]) acc[formattedDate] = [];
         acc[formattedDate].push(entry.nombre); // Agregar nombres a la fecha correspondiente
         return acc;
       }, {});
-  
+
       setCalendarData(formattedCalendarData);
       console.log("Datos del calendario:", formattedCalendarData);
     } catch (error) {
       console.error("Error fetching participants or calendar data:", error);
     }
   };
-  
 
   const applyFilter = (allParticipants, filter) => {
     const filtered = allParticipants.filter(
@@ -169,10 +170,10 @@ function App() {
   const handleDateClick = (date) => {
     const day = formatDate(date); // Convertir la fecha seleccionada a YYYY-MM-DD
     const names = calendarData[day]; // Buscar los participantes para esa fecha
-  
+
     console.log("Fecha seleccionada:", day); // Depuración
     console.log("Participantes encontrados:", names); // Depuración
-  
+
     if (names && Array.isArray(names) && names.length > 0) {
       Swal.fire({
         title: `Participantes del ${day}`,
@@ -200,7 +201,7 @@ function App() {
         },
       });
     }
-  };  
+  };
 
   const handleFilterChange = (newFilter) => {
     setFilter(newFilter);
@@ -248,20 +249,18 @@ function App() {
         </div>
         <ul>
           {participants
-          .filter(
-            (participant) =>
-              filter === "all" || participant.departamentos.includes(filter)
-          )
-          .map((participant) => (
-            <li
-              key={participant._id}
-              className={
-                participant.seleccionado[filter] ? "selected" : ""
-              }
-            >
-              {participant.nombre}
-            </li>
-          ))}
+            .filter(
+              (participant) =>
+                filter === "all" || participant.departamentos.includes(filter)
+            )
+            .map((participant) => (
+              <li
+                key={participant._id}
+                className={participant.seleccionado[filter] ? "selected" : ""}
+              >
+                {participant.nombre}
+              </li>
+            ))}
         </ul>
       </div>
       <div className="roulette-container">
