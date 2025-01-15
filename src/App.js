@@ -215,6 +215,23 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const handleClickOutside = (event) => {
+      const calendarModal = document.querySelector(".calendar-modal");
+      if (calendarOpen && calendarModal && !calendarModal.contains(event.target)) {
+        setCalendarOpen(false); // Cierra el calendario si se hace clic fuera
+      }
+    };
+  
+    // Agrega el evento al documento
+    document.addEventListener("mousedown", handleClickOutside);
+  
+    // Limpia el evento al desmontar el componente
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [calendarOpen]); // Solo se ejecuta cuando `calendarOpen` cambia  
+
+  useEffect(() => {
     const container = document.querySelector(".wheel-wrapper");
     if (rouletteData.length > 0 && !wheelRef.current) {
       const props = {

@@ -204,7 +204,7 @@ body {
   }
 
   .btn-calendar {
-    background-color: #4DA1A9;
+    background-color: transparent;
     color: white;
     width: 50px; /* Ancho del botón */
     height: 50px; /* Altura del botón */
@@ -212,8 +212,8 @@ body {
     text-align: center; /* Centrar el contenido */
     line-height: 30px; /* Alinear verticalmente el ícono */
     padding-right: 50px;
-    border: none;
-    border-radius: 5px;
+    border: 1px solid white;
+    border-radius: 20px;
     cursor: pointer;
     position: absolute;
     top: 10px;
