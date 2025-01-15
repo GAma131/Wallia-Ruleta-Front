@@ -11,7 +11,7 @@ import aplausosSound from "./assets/Aplausos.mp3";
 
 function App() {
   const [participants, setParticipants] = useState([]);
-  const [filteredParticipants, setFilteredParticipants] = useState([]); // Participantes filtrados
+  const [filteredParticipants, setFilteredParticipants] = useState([]);
   const [rouletteData, setRouletteData] = useState([]);
   const [winner, setWinner] = useState(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -29,39 +29,33 @@ function App() {
 
   const fetchParticipants = async () => {
     try {
-      // Fetch participants and apply filter
-      const res = await axios.post(`${BACKEND_URL}/api/roulette/restart`, {
+      await axios.post(`${BACKEND_URL}/api/roulette/restart`, {
         depa: filter,
       });
 
       const response = await axios.get(`${BACKEND_URL}/api/roulette`);
       setParticipants(response.data);
-      applyFilter(response.data, filter); // Aplicar filtro inicial
 
-      // Fetch calendar data from the API
+      applyFilter(response.data, filter);
+
       const calendarResponse = await axios.get(
         `${BACKEND_URL}/api/roulette/historico`
       );
 
-      // Filtrar los participantes según el departamento
-      let calendarFilter = calendarResponse.data;
-      if (filter != "all") {
-        calendarFilter = calendarResponse.data.filter(
-          (participant) => participant.departamento === filter
-        );
-      }
+      const calendarFilter =
+        filter === "all"
+          ? calendarResponse.data
+          : calendarResponse.data.filter((participant) =>
+              participant.departamentos.includes(filter)
+            );
 
-      console.log(calendarFilter);
-
-      // Formatear los datos del calendario
       const formattedCalendarData = calendarFilter.reduce((acc, entry) => {
-        const date = entry.fecha.split("T")[0];
+        const date = entry.fecha?.split("T")[0];
         if (!acc[date]) acc[date] = [];
         acc[date].push(entry.nombre);
         return acc;
       }, {});
 
-      // Establecer los datos del calendario en el estado
       setCalendarData(formattedCalendarData);
     } catch (error) {
       console.error("Error fetching participants or calendar data:", error);
@@ -69,27 +63,18 @@ function App() {
   };
 
   const applyFilter = (allParticipants, filter) => {
-    let filtered = allParticipants;
-    if (filter != "all") {
-      filtered = allParticipants.filter((p) => p.departamento === filter);
-    }
+    const filtered = allParticipants.filter(
+      (p) =>
+        (filter === "all" || p.departamentos.includes(filter)) &&
+        !p.seleccionado[filter]
+    );
+
     setFilteredParticipants(filtered);
 
-    const unselectedParticipants = filtered.filter((p) => !p.seleccionado);
-    setRouletteData(unselectedParticipants.map((p) => ({ label: p.nombre })));
-  };
-
-  const updateCalendarData = (participants) => {
-    const selectedParticipants = participants.filter(
-      (p) => p.seleccionado && p.departamento === filter
+    const unselectedParticipants = filtered.filter(
+      (p) => !p.seleccionado[filter]
     );
-    const calendarData = selectedParticipants.reduce((acc, p) => {
-      const date = p.fecha.split("T")[0];
-      if (!acc[date]) acc[date] = [];
-      acc[date].push(p.nombre);
-      return acc;
-    }, {});
-    setCalendarData(calendarData);
+    setRouletteData(unselectedParticipants.map((p) => ({ label: p.nombre })));
   };
 
   const playSound = (audioRef) => {
@@ -255,7 +240,9 @@ function App() {
           {filteredParticipants.map((participant) => (
             <li
               key={participant._id}
-              className={participant.seleccionado ? "selected" : ""}
+              className={
+                participant.seleccionado[filter] ? "selected" : ""
+              }
             >
               {participant.nombre}
             </li>
@@ -263,7 +250,6 @@ function App() {
         </ul>
       </div>
       <div className="roulette-container">
-        <div className="roulette-controls"></div>
         <div className="roulette-pointer"></div>
         <div className="wheel-wrapper"></div>
         <button onClick={spinWheel} className="btn-spin">
