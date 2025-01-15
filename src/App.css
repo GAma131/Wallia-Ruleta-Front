@@ -234,3 +234,131 @@ body {
     color: white; /* Color blanco */
     font-weight: bold; /* Negrita opcional */
   }
+  .app-container {
+   display: flex;
+   padding: 20px;
+   gap: 20px;
+   height: 100vh;
+   background-color: #1a1a1a;
+   color: white;
+ }
+ 
+ .participants-list {
+   flex: 0 0 300px;
+   padding: 20px;
+   background-color: #2a2a2a;
+   border-radius: 10px;
+   overflow-y: auto;
+ }
+ 
+ .participants-header {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   margin-bottom: 20px;
+ }
+ 
+ .participants-select {
+   padding: 5px 10px;
+   border-radius: 5px;
+   background-color: #3a3a3a;
+   color: white;
+   border: 1px solid #4a4a4a;
+ }
+ 
+ .participants-list ul {
+   list-style: none;
+   padding: 0;
+   margin: 0;
+ }
+ 
+ .participants-list li {
+   padding: 10px;
+   margin: 5px 0;
+   background-color: #3a3a3a;
+   border-radius: 5px;
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+ }
+ 
+ .participants-list li.selected {
+   opacity: 0.5;
+   background-color: rgba(0, 255, 0, 0.1);
+ }
+ 
+ .participants-list li.removed {
+   opacity: 0.6;
+   background-color: rgba(255, 0, 0, 0.1);
+ }
+ 
+ .btn-readd {
+   margin-left: 8px;
+   background: none;
+   border: none;
+   cursor: pointer;
+   font-size: 1.2em;
+   color: #2DB7E6;
+   transition: transform 0.2s;
+ }
+ 
+ .btn-readd:hover {
+   transform: rotate(180deg);
+ }
+ 
+ .roulette-container {
+   flex: 1;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   position: relative;
+ }
+ 
+ .wheel-wrapper {
+   width: 500px;
+   height: 500px;
+   position: relative;
+ }
+ 
+ .roulette-pointer {
+   width: 20px;
+   height: 40px;
+   background-color: red;
+   position: absolute;
+   top: 0;
+   left: 50%;
+   transform: translateX(-50%);
+   clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+   z-index: 1;
+ }
+ 
+ .btn-spin {
+   margin-top: 20px;
+   padding: 10px 20px;
+   font-size: 1.2em;
+   background-color: #2DB7E6;
+   color: white;
+   border: none;
+   border-radius: 5px;
+   cursor: pointer;
+   transition: background-color 0.3s;
+ }
+ 
+ .btn-spin:hover {
+   background-color: #22A5C4;
+ }
+ 
+ .btn-spin:disabled {
+   background-color: #666;
+   cursor: not-allowed;
+ }
+ 
+ .btn-calendar {
+   position: absolute;
+   top: 20px;
+   right: 20px;
+   padding: 10px;
+   font-size: 1.5em;
+   background: none;
+   border: none
+ }
