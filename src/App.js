@@ -35,6 +35,7 @@ function App() {
 
       const response = await axios.get(`${BACKEND_URL}/api/roulette`);
       setParticipants(response.data);
+      console.log(participants)
 
       applyFilter(response.data, filter);
 
@@ -142,7 +143,7 @@ function App() {
             axios
               .patch(`${BACKEND_URL}/api/roulette`, {
                 id: winnerParticipant._id,
-                fecha: today,
+                departamento: filter,
               })
               .then(() => {
                 window.location.reload();
@@ -213,7 +214,7 @@ function App() {
         itemLabelRadiusMax: 0.37,
         itemLabelColors: ["#000"],
         itemBackgroundColors: ["#2DB7E6", "#304D93", "#22A5C4", "#1F3360"],
-        lineWidth: 0,
+        lineWidth: 1,
         borderWidth: 0,
       };
       wheelRef.current = new Wheel(container, props);
