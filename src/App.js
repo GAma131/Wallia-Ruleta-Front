@@ -11,11 +11,12 @@ import aplausosSound from "./assets/Aplausos.mp3";
 
 function App() {
   const [participants, setParticipants] = useState([]);
-  const [filteredParticipants, setFilteredParticipants] = useState([]); // Participantes filtrados
+  const [filteredParticipants, setFilteredParticipants] = useState([]);
   const [rouletteData, setRouletteData] = useState([]);
   const [winner, setWinner] = useState(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [calendarData, setCalendarData] = useState({});
+  const [cancelledParticipants, setCancelledParticipants] = useState([]);
   const [filter, setFilter] = useState(() => {
     return localStorage.getItem("filter") || "web";
   });
@@ -29,39 +30,35 @@ function App() {
 
   const fetchParticipants = async () => {
     try {
-      // Fetch participants and apply filter
-      const res = await axios.post(`${BACKEND_URL}/api/roulette/restart`, {
+      await axios.post(`${BACKEND_URL}/api/roulette/restart`, {
         depa: filter,
       });
 
       const response = await axios.get(`${BACKEND_URL}/api/roulette`);
       setParticipants(response.data);
-      applyFilter(response.data, filter); // Aplicar filtro inicial
 
-      // Fetch calendar data from the API
+      applyFilter(response.data, filter);
+
       const calendarResponse = await axios.get(
         `${BACKEND_URL}/api/roulette/historico`
       );
 
-      // Filtrar los participantes según el departamento
-      let calendarFilter = calendarResponse.data;
-      if (filter != "all") {
-        calendarFilter = calendarResponse.data.filter(
-          (participant) => participant.departamento === filter
-        );
-      }
+      const calendarFilter = calendarResponse.data.filter((participant) =>
+        participant.departamento.includes(filter)
+      );
 
-      console.log(calendarFilter);
-
-      // Formatear los datos del calendario
       const formattedCalendarData = calendarFilter.reduce((acc, entry) => {
-        const date = entry.fecha.split("T")[0];
-        if (!acc[date]) acc[date] = [];
-        acc[date].push(entry.nombre);
+        const [day, month, year] = entry.fecha.split(",")[0].split("/");
+        const formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(
+          2,
+          "0"
+        )}`;
+
+        if (!acc[formattedDate]) acc[formattedDate] = [];
+        acc[formattedDate].push(entry.nombre);
         return acc;
       }, {});
 
-      // Establecer los datos del calendario en el estado
       setCalendarData(formattedCalendarData);
     } catch (error) {
       console.error("Error fetching participants or calendar data:", error);
@@ -69,27 +66,20 @@ function App() {
   };
 
   const applyFilter = (allParticipants, filter) => {
-    let filtered = allParticipants;
-    if (filter != "all") {
-      filtered = allParticipants.filter((p) => p.departamento === filter);
-    }
+    const filtered = allParticipants.filter(
+      (p) =>
+        (filter === "all" || p.departamentos.includes(filter)) &&
+        !p.seleccionado[filter]
+    );
+
     setFilteredParticipants(filtered);
 
-    const unselectedParticipants = filtered.filter((p) => !p.seleccionado);
-    setRouletteData(unselectedParticipants.map((p) => ({ label: p.nombre })));
-  };
-
-  const updateCalendarData = (participants) => {
-    const selectedParticipants = participants.filter(
-      (p) => p.seleccionado && p.departamento === filter
+    const unselectedParticipants = filtered.filter(
+      (p) => 
+        !p.seleccionado[filter] && 
+        !cancelledParticipants.includes(p.nombre)
     );
-    const calendarData = selectedParticipants.reduce((acc, p) => {
-      const date = p.fecha.split("T")[0];
-      if (!acc[date]) acc[date] = [];
-      acc[date].push(p.nombre);
-      return acc;
-    }, {});
-    setCalendarData(calendarData);
+    setRouletteData(unselectedParticipants.map((p) => ({ label: p.nombre })));
   };
 
   const playSound = (audioRef) => {
@@ -102,8 +92,41 @@ function App() {
     audioRef.currentTime = 0;
   };
 
+  const createWheel = (container, items) => {
+    container.innerHTML = '';
+    const props = {
+      items,
+      name: "Takeaway",
+      radius: 0.89,
+      itemLabelRadiusMax: 0.37,
+      itemLabelColors: ["#000"],
+      itemBackgroundColors: ["#2DB7E6", "#304D93", "#22A5C4", "#1F3360"],
+      lineWidth: 1,
+      borderWidth: 0,
+    };
+    props.items.forEach((item, index) => {  
+        if (props.itemBackgroundColors[index] === "#304D93") {
+            props.itemLabelColors[index] = "#fff"; 
+        }
+    });
+    wheelRef.current = new Wheel(container, props);
+  };
+
   const spinWheel = () => {
-    if (!wheelRef.current) return;
+    if (!wheelRef.current || rouletteData.length === 0) {
+      Swal.fire({
+        title: "¡Atención!",
+        text: "No hay participantes disponibles para girar la ruleta.",
+        icon: "warning",
+        confirmButtonText: "Entendido",
+        customClass: {
+          popup: "custom-popup",
+          title: "custom-title",
+          confirmButton: "custom-button",
+        },
+      });
+      return;
+    }
 
     const ruletaAudio = ruletaAudioRef.current;
     playSound(ruletaAudio);
@@ -153,11 +176,10 @@ function App() {
         }).then((result) => {
           stopSound(aplausosAudioRef.current);
           if (result.isConfirmed) {
-            const today = new Date().toISOString();
             axios
               .patch(`${BACKEND_URL}/api/roulette`, {
                 id: winnerParticipant._id,
-                fecha: today,
+                departamento: filter,
               })
               .then(() => {
                 window.location.reload();
@@ -166,11 +188,40 @@ function App() {
                 console.error("Error al actualizar el participante:", error);
               });
           } else {
+            setCancelledParticipants(prev => [...prev, winnerLabel]);
+            
+            const updatedRouletteData = rouletteData.filter(
+              item => item.label !== winnerLabel
+            );
+            setRouletteData(updatedRouletteData);
+            
             setWinner(null);
+            
+            const container = document.querySelector(".wheel-wrapper");
+            if (container) {
+              createWheel(container, updatedRouletteData);
+            }
           }
         });
       }
     }, duration);
+  };
+
+  const restoreParticipant = (participantName) => {
+    setCancelledParticipants(prev => 
+      prev.filter(name => name !== participantName)
+    );
+    
+    const updatedRouletteData = [
+      ...rouletteData,
+      { label: participantName }
+    ];
+    setRouletteData(updatedRouletteData);
+    
+    const container = document.querySelector(".wheel-wrapper");
+    if (container) {
+      createWheel(container, updatedRouletteData);
+    }
   };
 
   const toggleCalendar = () => setCalendarOpen(!calendarOpen);
@@ -178,7 +229,8 @@ function App() {
   const handleDateClick = (date) => {
     const day = formatDate(date);
     const names = calendarData[day];
-    if (names && names.length > 0) {
+
+    if (names && Array.isArray(names) && names.length > 0) {
       Swal.fire({
         title: `Participantes del ${day}`,
         html: names
@@ -219,19 +271,27 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const handleClickOutside = (event) => {
+      const calendarModal = document.querySelector(".calendar-modal");
+      if (
+        calendarOpen &&
+        calendarModal &&
+        !calendarModal.contains(event.target)
+      ) {
+        setCalendarOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [calendarOpen]);
+
+  useEffect(() => {
     const container = document.querySelector(".wheel-wrapper");
-    if (rouletteData.length > 0 && !wheelRef.current) {
-      const props = {
-        items: rouletteData,
-        name: "Takeaway",
-        radius: 0.89,
-        itemLabelRadiusMax: 0.37,
-        itemLabelColors: ["#000"],
-        itemBackgroundColors: ["#2DB7E6", "#304D93", "#22A5C4", "#1F3360"],
-        lineWidth: 0,
-        borderWidth: 0,
-      };
-      wheelRef.current = new Wheel(container, props);
+    if (rouletteData.length > 0 && container) {
+      createWheel(container, rouletteData);
     }
   }, [rouletteData]);
 
@@ -252,18 +312,33 @@ function App() {
           </select>
         </div>
         <ul>
-          {filteredParticipants.map((participant) => (
-            <li
-              key={participant._id}
-              className={participant.seleccionado ? "selected" : ""}
-            >
-              {participant.nombre}
-            </li>
-          ))}
+          {participants
+            .filter(
+              (participant) =>
+                filter === "all" || participant.departamentos.includes(filter)
+            )
+            .map((participant) => (
+              <li
+                key={participant._id}
+                className={`
+                  ${participant.seleccionado[filter] ? "selected" : ""}
+                  ${cancelledParticipants.includes(participant.nombre) ? "cancelled" : ""}
+                `}
+              >
+                {participant.nombre}
+                {cancelledParticipants.includes(participant.nombre) && !participant.seleccionado[filter] && (
+                  <button 
+                    className="restore-btn"
+                    onClick={() => restoreParticipant(participant.nombre)}
+                  >
+                    ↺
+                  </button>
+                )}
+              </li>
+            ))}
         </ul>
       </div>
       <div className="roulette-container">
-        <div className="roulette-controls"></div>
         <div className="roulette-pointer"></div>
         <div className="wheel-wrapper"></div>
         <button onClick={spinWheel} className="btn-spin">
