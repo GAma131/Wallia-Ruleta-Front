@@ -75,8 +75,8 @@ function App() {
     setFilteredParticipants(filtered);
 
     const unselectedParticipants = filtered.filter(
-      (p) => 
-        !p.seleccionado[filter] && 
+      (p) =>
+        !p.seleccionado[filter] &&
         !cancelledParticipants.includes(p.nombre)
     );
     setRouletteData(unselectedParticipants.map((p) => ({ label: p.nombre })));
@@ -94,23 +94,35 @@ function App() {
 
   const createWheel = (container, items) => {
     container.innerHTML = '';
+    const baseColors = ["#2DB7E6", "#304D93", "#22A5C4", "#1F3360"];
+    let colors = [...baseColors]; // Copiar la paleta original
+
+    // Si el número de elementos es impar, elimina un color de la paleta
+    if (items.length % 2 !== 0) {
+      colors.pop(); // Elimina el último color
+    }
+
     const props = {
       items,
       name: "Takeaway",
       radius: 0.89,
       itemLabelRadiusMax: 0.37,
-      itemLabelColors: ["#000"],
-      itemBackgroundColors: ["#2DB7E6", "#304D93", "#22A5C4", "#1F3360"],
+      itemLabelColors: [],
+      itemBackgroundColors: [],
       lineWidth: 1,
       borderWidth: 0,
     };
-    props.items.forEach((item, index) => {  
-        if (props.itemBackgroundColors[index] === "#304D93") {
-            props.itemLabelColors[index] = "#fff"; 
-        }
+
+    // Asignar colores de fondo cíclicamente
+    props.items.forEach((item, index) => {
+      const color = colors[index % colors.length];
+      props.itemBackgroundColors.push(color);
+      props.itemLabelColors.push(color === "#304D93" ? "#fff" : "#000"); // Ajustar color del texto
     });
+
     wheelRef.current = new Wheel(container, props);
   };
+
 
   const spinWheel = () => {
     if (!wheelRef.current || rouletteData.length === 0) {
@@ -189,14 +201,14 @@ function App() {
               });
           } else {
             setCancelledParticipants(prev => [...prev, winnerLabel]);
-            
+
             const updatedRouletteData = rouletteData.filter(
               item => item.label !== winnerLabel
             );
             setRouletteData(updatedRouletteData);
-            
+
             setWinner(null);
-            
+
             const container = document.querySelector(".wheel-wrapper");
             if (container) {
               createWheel(container, updatedRouletteData);
@@ -208,16 +220,16 @@ function App() {
   };
 
   const restoreParticipant = (participantName) => {
-    setCancelledParticipants(prev => 
+    setCancelledParticipants(prev =>
       prev.filter(name => name !== participantName)
     );
-    
+
     const updatedRouletteData = [
       ...rouletteData,
       { label: participantName }
     ];
     setRouletteData(updatedRouletteData);
-    
+
     const container = document.querySelector(".wheel-wrapper");
     if (container) {
       createWheel(container, updatedRouletteData);
@@ -327,7 +339,7 @@ function App() {
               >
                 {participant.nombre}
                 {cancelledParticipants.includes(participant.nombre) && !participant.seleccionado[filter] && (
-                  <button 
+                  <button
                     className="restore-btn"
                     onClick={() => restoreParticipant(participant.nombre)}
                   >
