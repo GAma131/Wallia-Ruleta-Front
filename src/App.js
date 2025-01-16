@@ -104,6 +104,11 @@ function App() {
       lineWidth: 1,
       borderWidth: 0,
     };
+    props.items.forEach((item, index) => {  
+        if (props.itemBackgroundColors[index] === "#304D93") {
+            props.itemLabelColors[index] = "#fff"; 
+        }
+    });
     wheelRef.current = new Wheel(container, props);
   };
 

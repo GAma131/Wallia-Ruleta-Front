@@ -110,14 +110,8 @@ body {
     width: 600px;
   }
 
-   /* Puntero */
-   .roulette-pointer {
-    margin-bottom: -60px; /* Ajuste para que el puntero se vea correctamente */
-    width: 80px;
-    height: 80px;
-    background-color: white; /* Color del puntero */
-    clip-path: polygon(50% 100%, 100% 0%, 0% 0%);
-  }
+   
+  
 
   /* SweetAlert Customization */
   .custom-popup {
@@ -321,16 +315,17 @@ body {
  }
  
  .roulette-pointer {
-   width: 20px;
-   height: 40px;
-   background-color: red;
-   position: absolute;
-   top: 0;
-   left: 50%;
-   transform: translateX(-50%);
-   clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-   z-index: 1;
- }
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 40px solid white;  /* Changed from top to bottom and color to white */
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) rotate(180deg);  /* Added 180deg rotation */
+  z-index: 1;
+}
  
  .btn-spin {
    margin-top: 20px;
@@ -362,3 +357,4 @@ body {
    background: none;
    border: none
  }
+ 
