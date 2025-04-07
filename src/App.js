@@ -4,7 +4,7 @@ import "./App.css";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import * as easing from "./easing";
-import { Wheel } from "https://cdn.jsdelivr.net/npm/spin-wheel@5.0.2/dist/spin-wheel-esm.js";
+import Wheel from "spin-wheel";
 import Swal from "sweetalert2";
 import ruletaSound from "./assets/Ruleta.mp3";
 import aplausosSound from "./assets/Aplausos.mp3";
