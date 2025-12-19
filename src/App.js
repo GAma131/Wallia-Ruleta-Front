@@ -24,7 +24,8 @@ function App() {
   const ruletaAudioRef = useRef(new Audio(ruletaSound));
   const aplausosAudioRef = useRef(new Audio(aplausosSound));
 
-  const BACKEND_URL = "https://ihvbrddflc.execute-api.us-east-2.amazonaws.com/prod";
+  const BACKEND_URL = "/prod";
+  const AUTH_TOKEN = "eHhXYWxsaWFSdWxldGEyMDI1eHg=";
 
   const formatDate = (date) => date.toISOString().split("T")[0];
 
@@ -32,15 +33,22 @@ function App() {
     try {
       await axios.post(`${BACKEND_URL}/participantes/restartRoulette`, {
         depa: filter,
+      }, {
+        headers: { 'Authorization': AUTH_TOKEN }
       });
 
-      const response = await axios.get(`${BACKEND_URL}/participantes/getParticipantes`);
+      const response = await axios.get(`${BACKEND_URL}/participantes/getParticipantes`, {
+        headers: { 'Authorization': AUTH_TOKEN }
+      });
       setParticipants(response.data);
 
       applyFilter(response.data, filter);
 
       const calendarResponse = await axios.get(
-        `${BACKEND_URL}/participantes/getHistorico`
+        `${BACKEND_URL}/participantes/getHistorico`,
+        {
+          headers: { 'Authorization': AUTH_TOKEN }
+        }
       );
 
       const calendarFilter = calendarResponse.data.filter((participant) =>
@@ -189,9 +197,11 @@ function App() {
           stopSound(aplausosAudioRef.current);
           if (result.isConfirmed) {
             axios
-              .patch(`${BACKEND_URL}/participantes/getParticipantes`, {
+              .post(`${BACKEND_URL}/participantes/selectParticipante`, {
                 id: winnerParticipant._id,
                 departamento: filter,
+              }, {
+                headers: { 'Authorization': AUTH_TOKEN }
               })
               .then(() => {
                 window.location.reload();
