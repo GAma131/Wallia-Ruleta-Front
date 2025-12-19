@@ -31,12 +31,6 @@ function App() {
 
   const fetchParticipants = async () => {
     try {
-      await axios.post(`${BACKEND_URL}/participantes/getParticipantes`, {
-        depa: filter,
-      }, {
-        headers: { 'Authorization': AUTH_TOKEN }
-      });
-
       const response = await axios.get(`${BACKEND_URL}/participantes/getParticipantes`, {
         headers: { 'Authorization': AUTH_TOKEN }
       });
