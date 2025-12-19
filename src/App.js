@@ -24,7 +24,7 @@ function App() {
   const ruletaAudioRef = useRef(new Audio(ruletaSound));
   const aplausosAudioRef = useRef(new Audio(aplausosSound));
 
-  const BACKEND_URL = "https://walia-ruleta-back.onrender.com";
+  const BACKEND_URL = "https://ihvbrddflc.execute-api.us-east-2.amazonaws.com/prod";
 
   const formatDate = (date) => date.toISOString().split("T")[0];
 

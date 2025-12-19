@@ -4,7 +4,7 @@ import axios from 'axios';
 
 // Update the base URL for axios
 const apiClient = axios.create({
-  baseURL: 'https://walia-ruleta-back.onrender.com',
+  baseURL: 'https://ihvbrddflc.execute-api.us-east-2.amazonaws.com/prod',
 });
 
 // Example function using the updated base URL
