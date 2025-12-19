@@ -34,7 +34,7 @@ function App() {
         depa: filter,
       });
 
-      const response = await axios.get(`${BACKEND_URL}/api/roulette`);
+      const response = await axios.get(`${BACKEND_URL}/participantes/getParticipantes`);
       setParticipants(response.data);
 
       applyFilter(response.data, filter);
