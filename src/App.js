@@ -30,7 +30,7 @@ function App() {
 
   const fetchParticipants = async () => {
     try {
-      await axios.post(`${BACKEND_URL}/api/roulette/restart`, {
+      await axios.post(`${BACKEND_URL}/participantes/restartRoulette`, {
         depa: filter,
       });
 
@@ -40,7 +40,7 @@ function App() {
       applyFilter(response.data, filter);
 
       const calendarResponse = await axios.get(
-        `${BACKEND_URL}/api/roulette/historico`
+        `${BACKEND_URL}/participantes/getHistorico`
       );
 
       const calendarFilter = calendarResponse.data.filter((participant) =>
@@ -189,7 +189,7 @@ function App() {
           stopSound(aplausosAudioRef.current);
           if (result.isConfirmed) {
             axios
-              .patch(`${BACKEND_URL}/api/roulette`, {
+              .patch(`${BACKEND_URL}/participantes/getParticipantes`, {
                 id: winnerParticipant._id,
                 departamento: filter,
               })
