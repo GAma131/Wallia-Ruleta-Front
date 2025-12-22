@@ -4,7 +4,7 @@ import "./App.css";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import * as easing from "./easing";
-import { Wheel } from "./spin-wheel/spin-wheel-esm.js";
+import { Wheel } from "spin-wheel";
 import Swal from "sweetalert2";
 import ruletaSound from "./assets/Ruleta.mp3";
 import aplausosSound from "./assets/Aplausos.mp3";
@@ -24,7 +24,9 @@ function App() {
   const ruletaAudioRef = useRef(new Audio(ruletaSound));
   const aplausosAudioRef = useRef(new Audio(aplausosSound));
 
-  const BACKEND_URL = "/prod";
+  const BACKEND_URL = process.env.NODE_ENV === 'production' 
+    ? "https://ihvbrddflc.execute-api.us-east-2.amazonaws.com/prod"
+    : "/prod";
   const AUTH_TOKEN = "eHhXYWxsaWFSdWxldGEyMDI1eHg=";
 
   const formatDate = (date) => date.toISOString().split("T")[0];
