@@ -33,6 +33,12 @@ function App() {
 
   const fetchParticipants = async () => {
     try {
+      await axios.post(`${BACKEND_URL}/participantes/restartRoulette`, {
+        depa: filter,
+      }, {
+        headers: { 'Authorization': AUTH_TOKEN }
+      });
+
       // Ejecutar ambas llamadas GET en paralelo para mayor velocidad
       const [response, calendarResponse] = await Promise.all([
         axios.get(`${BACKEND_URL}/participantes/getParticipantes`, {
