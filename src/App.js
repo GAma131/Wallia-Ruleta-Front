@@ -33,25 +33,18 @@ function App() {
 
   const fetchParticipants = async () => {
     try {
-      await axios.post(`${BACKEND_URL}/participantes/restartRoulette`, {
-        depa: filter,
-      }, {
-        headers: { 'Authorization': AUTH_TOKEN }
-      });
-
-      const response = await axios.get(`${BACKEND_URL}/participantes/getParticipantes`, {
-        headers: { 'Authorization': AUTH_TOKEN }
-      });
-      setParticipants(response.data);
-
-      applyFilter(response.data, filter);
-
-      const calendarResponse = await axios.get(
-        `${BACKEND_URL}/participantes/getHistorico`,
-        {
+      // Ejecutar ambas llamadas GET en paralelo para mayor velocidad
+      const [response, calendarResponse] = await Promise.all([
+        axios.get(`${BACKEND_URL}/participantes/getParticipantes`, {
           headers: { 'Authorization': AUTH_TOKEN }
-        }
-      );
+        }),
+        axios.get(`${BACKEND_URL}/participantes/getHistorico`, {
+          headers: { 'Authorization': AUTH_TOKEN }
+        })
+      ]);
+
+      setParticipants(response.data);
+      applyFilter(response.data, filter);
 
       const calendarFilter = calendarResponse.data.filter((participant) =>
         participant.departamento.includes(filter)
@@ -206,7 +199,9 @@ function App() {
                 headers: { 'Authorization': AUTH_TOKEN }
               })
               .then(() => {
-                window.location.reload();
+                // Actualizar estado sin recargar la página
+                fetchParticipants();
+                setWinner(null);
               })
               .catch((error) => {
                 console.error("Error al actualizar el participante:", error);
@@ -287,7 +282,7 @@ function App() {
     setFilter(newFilter);
     localStorage.setItem("filter", newFilter);
     applyFilter(participants, newFilter);
-    window.location.reload();
+    // No recargar la página, el estado se actualiza automáticamente
   };
 
   useEffect(() => {
